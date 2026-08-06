@@ -1,5 +1,5 @@
 frontend:
-  replicaCount: 1
+  replicaCount: 2
   image:
     repository: quay.io/rh-ee-dsivan/developer-workshop/exercise-5/frontend
     tag: v1
@@ -15,6 +15,7 @@ frontend:
       cpu: 100m
       memory: 128Mi
   backendUrl: "http://backend:8080"
+
 backend:
   replicaCount: 1
   image:
@@ -35,6 +36,7 @@ backend:
     dbUser: workshopuser
     dbPassword: workshop123
     dbName: notesdb
+
 db:
   replicaCount: 1
   image:
