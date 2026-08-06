@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "chart.fullname" . }}-db
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: db
+spec:
+  replicas: {{ .Values.db.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "chart.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: db
+  template:
+    metadata:
+      labels:
+        {{- include "chart.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: db
+    spec:
+      containers:
+        - name: postgresql
+          image: "{{ .Values.db.image.repository }}:{{ .Values.db.image.tag }}"
+          ports:
+            - name: postgresql
+              containerPort: {{ .Values.db.service.port }}
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: {{ .Values.db.secret.name }}
+          volumeMounts:
+            - name: {{ .Values.db.mount.name }}
+              mountPath: {{ .Values.db.mount.mountPath }}
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+      volumes:
+        - name: {{ .Values.db.mount.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.db.mount.name }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.db.mount.name }}
+  labels:
+    {{- include "chart.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: db
+spec:
+  accessModes:
+    - {{ .Values.db.mount.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.db.mount.storage }}
