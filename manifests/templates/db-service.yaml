@@ -3,12 +3,11 @@ kind: Service
 metadata:
   name: db
   labels:
-    {{- include "chart.labels" . | nindent 4 }}
-    app.kubernetes.io/component: db
+    app: db
 spec:
   type: ClusterIP
   ports:
-    - port: {{ .Values.db.service.port }}
+    - port: 5432
       targetPort: postgresql
       protocol: TCP
       name: postgresql

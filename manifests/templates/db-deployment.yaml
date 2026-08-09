@@ -1,52 +1,53 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "chart.fullname" . }}-db
+  name: db
   labels:
-    {{- include "chart.labels" . | nindent 4 }}
-    app.kubernetes.io/component: db
+    app: db
 spec:
-  replicas: {{ .Values.db.replicaCount }}
+  replicas: 1
   selector:
     matchLabels:
-      {{- include "chart.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: db
+      app: db
   template:
     metadata:
       labels:
-        {{- include "chart.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: db
+        app: db
     spec:
       containers:
         - name: postgresql
-          image: "{{ .Values.db.image.repository }}:{{ .Values.db.image.tag }}"
+          image: registry.redhat.io/rhel9/postgresql-16:latest
           ports:
             - name: postgresql
-              containerPort: {{ .Values.db.service.port }}
+              containerPort: 5432
               protocol: TCP
           envFrom:
             - secretRef:
-                name: {{ .Values.db.secret.name }}
+                name: db
           volumeMounts:
-            - name: {{ .Values.db.mount.name }}
-              mountPath: {{ .Values.db.mount.mountPath }}
+            - name: db-data
+              mountPath: /var/lib/pgsql/data
           resources:
-            {{- toYaml .Values.backend.resources | nindent 12 }}
+            limits:
+              cpu: 200m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
       volumes:
-        - name: {{ .Values.db.mount.name }}
+        - name: db-data
           persistentVolumeClaim:
-            claimName: {{ .Values.db.mount.name }}
+            claimName: db-data
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ .Values.db.mount.name }}
+  name: db-data
   labels:
-    {{- include "chart.selectorLabels" . | nindent 4 }}
-    app.kubernetes.io/component: db
+    app: db
 spec:
   accessModes:
-    - {{ .Values.db.mount.accessMode }}
+    - ReadWriteOnce
   resources:
     requests:
-      storage: {{ .Values.db.mount.storage }}
+      storage: 1Gi
