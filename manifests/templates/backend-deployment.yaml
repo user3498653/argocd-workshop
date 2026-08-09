@@ -1,40 +1,37 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "chart.fullname" . }}-backend
+  name: backend
   labels:
-    {{- include "chart.labels" . | nindent 4 }}
-    app.kubernetes.io/component: backend
+    app: backend
 spec:
-  replicas: {{ .Values.backend.replicaCount }}
+  replicas: 1
   selector:
     matchLabels:
-      {{- include "chart.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: backend
+      app: backend
   template:
     metadata:
       labels:
-        {{- include "chart.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: backend
+        app: backend
     spec:
       containers:
         - name: backend
-          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          image: quay.io/rh-ee-dsivan/developer-workshop/exercise-5/backend:v1
           ports:
             - name: http
-              containerPort: {{ .Values.backend.service.port }}
+              containerPort: 8080
               protocol: TCP
           env:
             - name: DB_HOST
-              value: {{ .Values.backend.env.dbHost | quote }}
+              value: "db"
             - name: DB_PORT
-              value: {{ .Values.backend.env.dbPort | quote }}
+              value: "5432"
             - name: DB_USER
-              value: {{ .Values.backend.env.dbUser | quote }}
+              value: "workshopuser"
             - name: DB_PASSWORD
-              value: {{ .Values.backend.env.dbPassword | quote }}
+              value: "workshop123"
             - name: DB_NAME
-              value: {{ .Values.backend.env.dbName | quote }}
+              value: "notesdb"
           livenessProbe:
             httpGet:
               path: /healthz
@@ -48,4 +45,9 @@ spec:
             initialDelaySeconds: 3
             periodSeconds: 5
           resources:
-            {{- toYaml .Values.backend.resources | nindent 12 }}
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
